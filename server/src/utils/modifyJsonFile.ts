@@ -1,7 +1,8 @@
 import { TypeUserData } from "index";
 import  fs  from 'fs/promises';
+import { Post } from "types/posts";
 
-export const modifyJSONFile = async (filePath: string, newData: TypeUserData[]) => {
+export const modifyJSONFile = async (filePath: string, newData: TypeUserData[]|Post[]) => {
     try {
         const backupPath = `${filePath}.backup`;
         await fs.copyFile(filePath, backupPath);

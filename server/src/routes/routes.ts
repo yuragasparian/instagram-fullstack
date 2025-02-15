@@ -62,16 +62,36 @@ router.get("/protected", (req: Request, res: Response) => {
   );
 });
 
-router.get("/posts", authMiddleware, async (req:Request, res:Response) => {
+router.get("/posts", authMiddleware, async (req: Request, res: Response) => {
   try {
-  // const {username}:{username:string} = req.body.user
-  const postsData = await fs.readFile("src/db/posts.json", "utf8");
-  const posts:Post[] = JSON.parse(postsData)
-  res.json(posts)
+    // const {username}:{username:string} = req.body.user
+    const postsData = await fs.readFile("src/db/posts.json", "utf8");
+    const posts: Post[] = JSON.parse(postsData)
+    res.json(posts)
   }
   catch (error) {
     res.status(403).json(error);
     return;
+  }
+})
+
+router.post("/likepost", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const postsData = await fs.readFile("src/db/posts.json", "utf8");
+    const posts: Post[] = JSON.parse(postsData)
+    const {liked, postId}:{liked:boolean, postId:string} = req.body
+    const post = posts.find((post) => post.id == postId)
+    if(post && post.likes) {
+      liked?post.likes+=1:post.likes-=1
+      const newPosts = posts.map(_post => _post.id==postId ? post:_post)
+      await modifyJSONFile("src/db/posts.json", newPosts);
+    }
+    res.json(`Post ${postId} ${liked?"":"dis"}liked!`)
+    return
+  } catch (error) {
+    console.log(error);
+    res.status(401)
+    return
   }
 })
 

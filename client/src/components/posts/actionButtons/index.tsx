@@ -1,13 +1,12 @@
-import { Bookmark, Heart, MessageCircle, Send } from "lucide-react";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
+import { Bookmark, MessageCircle, Send } from "lucide-react";
+import LikeButton from './likeButton';
 
-const ActionButtons = () => {
+const ActionButtons = ({postId}:{postId:string}) => {
   return (
     <div className="flex justify-between items-center p-2">
       <div className="flex items-center gap-1">
-        <Button variant={"ghost"} size={"icon"}>
-          <Heart className="size-6" />
-        </Button>
+        <LikeButton postId={postId}/>
         <Button variant={"ghost"} size={"icon"}>
           <MessageCircle className="size-6" />
         </Button>

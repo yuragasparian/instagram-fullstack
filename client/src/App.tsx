@@ -1,9 +1,9 @@
 import { Outlet } from "react-router";
-// import ValdateToken from "./lib/validateToken";
+import ValdateToken from "./lib/validateToken";
 import MainMenu from "./components/mainMenu/index";
 
 const App = () => {
-  // ValdateToken()
+  ValdateToken()
 
   return (
     <div className="flex">

@@ -5,7 +5,7 @@ const Posts = (posts:Post[]) => {
   return (
     <div className="w-2/3">
         {posts.map((post) =>{
-            return PostBlock(post)
+            return <PostBlock key={post.id} post={post} />
         })}
     </div>
   )
