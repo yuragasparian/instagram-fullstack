@@ -1,16 +1,16 @@
 
-interface User {
+export interface User {
   id: string;
   username: string;
   profile_picture: string;
 }
 
-interface Media {
+export interface Media {
   url: string;
   type: "image" | "video";
 }
 
-interface Comment {
+export interface Comment {
   user: string;
   text: string;
   timestamp: string;

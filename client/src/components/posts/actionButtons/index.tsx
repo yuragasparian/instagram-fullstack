@@ -1,15 +1,15 @@
 import { Button } from "@/components/ui/button";
-import { Bookmark, MessageCircle, Send } from "lucide-react";
+import { Bookmark, Send } from "lucide-react";
 import LikeButton from './likeButton';
+import PostModal from './../postModal/index';
 
-const ActionButtons = ({postId}:{postId:string}) => {
+
+const ActionButtons = ({commentActive}:{commentActive:boolean}) => {
   return (
     <div className="flex justify-between items-center p-2">
       <div className="flex items-center gap-1">
-        <LikeButton postId={postId}/>
-        <Button variant={"ghost"} size={"icon"}>
-          <MessageCircle className="size-6" />
-        </Button>
+        <LikeButton/>
+        {commentActive && <PostModal />}
         <Button variant={"ghost"} size={"icon"}>
           <Send className="size-6" />
         </Button>

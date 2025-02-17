@@ -7,6 +7,7 @@ import { createContext, useState } from "react";
 export const PostContext = createContext<null | {
   liked: boolean;
   setLiked: React.Dispatch<React.SetStateAction<boolean>>;
+  post:Post
 }>(null);
 
 const PostBlock = ({ post }: { post: Post }) => {
@@ -15,7 +16,7 @@ const PostBlock = ({ post }: { post: Post }) => {
   return (
     <Card className="overflow-hidden mb-12 pb-8">
       <CardContent className="p-0">
-        <PostContext.Provider value={{ liked, setLiked }}>
+        <PostContext.Provider value={{ liked, setLiked, post }}>
           <div className="flex items-center gap-4 p-4">
             <img
               src={post.user.profile_picture}
@@ -32,12 +33,8 @@ const PostBlock = ({ post }: { post: Post }) => {
               className="aspect-square size-full"
             />
           </div>
-          <ActionButtons postId={post.id} />
-          <PostInfo
-            likes={post.likes}
-            caption={post.caption}
-            username={post.user.username}
-          />
+          <ActionButtons commentActive/>
+          <PostInfo/>
         </PostContext.Provider>
       </CardContent>
     </Card>

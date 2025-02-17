@@ -1,11 +1,14 @@
-import express, { json, NextFunction, Request, Response } from "express";
+import express, { json, NextFunction, Request, Response, text } from "express";
 import { TypeUserData } from "../index";
-import fs from "fs/promises";
+import fs, { readFile, writeFile } from "fs/promises";
 import { validateUser } from "../middlewares/validateUser";
 import { modifyJSONFile } from "../utils/modifyJsonFile";
 import jwt, { JwtPayload, VerifyErrors } from "jsonwebtoken";
 import authMiddleware from "../middlewares/authMiddleware";
-import { Post } from './../types/posts';
+import { Post, Comment } from './../types/posts';
+import { parse } from "path";
+import { stringify } from "querystring";
+import { AxiosError } from 'axios';
 
 export const SECRET_KEY = "test_secret_key";
 
@@ -57,7 +60,7 @@ router.get("/protected", (req: Request, res: Response) => {
         res.status(403).json("Invalid token");
         return
       };
-      res.json("Access granted to user " + JSON.stringify(user));
+      res.json(user);
     }
   );
 });
@@ -86,7 +89,7 @@ router.post("/likepost", authMiddleware, async (req: Request, res: Response) => 
       const newPosts = posts.map(_post => _post.id==postId ? post:_post)
       await modifyJSONFile("src/db/posts.json", newPosts);
     }
-    res.json(`Post ${postId} ${liked?"":"dis"}liked!`)
+    res.json(`Post ${postId} ${liked?"":"un"}liked!`)
     return
   } catch (error) {
     console.log(error);
@@ -94,5 +97,29 @@ router.post("/likepost", authMiddleware, async (req: Request, res: Response) => 
     return
   }
 })
+
+router.post("/post-comment", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const postsData = await fs.readFile("src/db/posts.json", "utf8");
+    const posts: Post[] = JSON.parse(postsData);
+
+    const { userComment, user_name, postId }: { userComment: string; user_name: string; postId: string } = req.body;
+    const postIndex = posts.findIndex((post) => post.id === postId);
+
+    if (postIndex !== -1) {
+      const newComment: Comment = { user:user_name, text: userComment, timestamp: new Date().toISOString().slice(0, 19) + "Z" };
+      posts[postIndex].comments.push(newComment);
+
+      await fs.writeFile("src/db/posts.json", JSON.stringify(posts, null, 2), "utf8");
+      res.status(200).json({ message: "Comment added successfully", comment: newComment });
+      return
+    }
+
+    res.status(404).json("Post not found" );
+  } catch (error) {
+    res.status(500).json("An error occurred: "+ error);
+  }
+});
+
 
 export default router;

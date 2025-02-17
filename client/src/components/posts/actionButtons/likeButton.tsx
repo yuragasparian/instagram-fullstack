@@ -5,7 +5,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { cn } from "@/lib/utils";
 import { PostContext } from "../postBlock";
 
-const LikeButton = ({ postId }: { postId: string }) => {
+const LikeButton = () => {
   const postContext = useContext(PostContext);
 
   if (!postContext) return null;
@@ -20,7 +20,7 @@ const LikeButton = ({ postId }: { postId: string }) => {
     axios
       .post(
         "http://localhost:3030/likepost",
-        { liked: newLiked, postId },
+        { liked: newLiked, postId:postContext.post.id },
         { withCredentials: true }
       )
       .then((res: AxiosResponse) => {
