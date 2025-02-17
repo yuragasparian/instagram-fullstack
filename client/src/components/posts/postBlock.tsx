@@ -19,18 +19,18 @@ const PostBlock = ({ post }: { post: Post }) => {
         <PostContext.Provider value={{ liked, setLiked, post }}>
           <div className="flex items-center gap-4 p-4">
             <img
-              src={post.user.profile_picture}
-              className="inline"
+              src={post.author?.profile_picture}
+              className="inline rounded-full"
               width="32px"
               height="32px"
             />
-            <span className="font-bold">{post.user.username}</span>
+            <span className="font-bold">{post.author_username}</span>
           </div>
           <div>
             <img
-              src={post.media[0].url}
+              src={post.image_url}
               alt=""
-              className="aspect-square size-full"
+              className="aspect-square object-cover size-full"
             />
           </div>
           <ActionButtons commentActive/>

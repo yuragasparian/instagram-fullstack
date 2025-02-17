@@ -11,6 +11,7 @@ import {
   UserRound,
 } from "lucide-react";
 import MainMenuItem from "./mainMenuItem";
+import { useStore } from "@/store/store";
 
 export type TMenuItem = {
   link: string;
@@ -20,7 +21,9 @@ export type TMenuItem = {
   >;
 };
 
+
 const MainMenu = () => {
+  const {username} = useStore()
   const menus: TMenuItem[] = [
     { link: "", name: "Home", icon: HomeIcon },
     { link: "search", name: "Search", icon: Search },
@@ -30,7 +33,7 @@ const MainMenu = () => {
     { link: "notifications", name: "Notifications", icon: Heart },
     { link: "create", name: "Create", icon: SquarePlus },
     { link: "dashboard", name: "Dashboard", icon: ChartColumn },
-    { link: "profile", name: "Profile", icon: UserRound },
+    { link: username, name: "Profile", icon: UserRound },
   ];
   return (
     <div className="flex flex-col gap-2 mt-4">

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChangeEvent, useState } from "react";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { Comment } from '@/types/posts';
 import { useStore } from "@/store/store";
 
@@ -24,8 +24,8 @@ const {username} = useStore()
         postId: postId,
       },
       { withCredentials: true }
-    ).then(() => {
-      setComments((prev) => [...prev, {user:username, text:input}])
+    ).then((res:AxiosResponse<Comment>) => {
+      setComments((prev) => [...prev, res.data])      
     });
 
     setInput("");

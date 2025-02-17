@@ -1,6 +1,6 @@
-import { TypeUserData } from "index";
+import { TypeUserData } from "../types/types";
 import  fs  from 'fs/promises';
-import { Post } from "types/posts";
+import { Post } from "types/types";
 
 export const modifyJSONFile = async (filePath: string, newData: TypeUserData[]|Post[]) => {
     try {

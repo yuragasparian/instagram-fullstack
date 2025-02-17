@@ -1,8 +1,10 @@
+
 export interface User {
-  id?: string;
+  id: string;
   username: string;
-  profile_picture: string | undefined;
+  profile_picture: string;
 }
+
 
 export interface Comment {
   id: string;
@@ -10,7 +12,6 @@ export interface Comment {
   username: string;
   timestamp: Date;
   postId: string;
-  post: Post;
 }
 
 export interface Post {
@@ -21,9 +22,19 @@ export interface Post {
   author_username: string;
   author: {
     username: string;
-    profile_picture: string | undefined;
+    profile_picture: string | null;
   };
   createdAt: Date;
   updatedAt: Date;
   comments: Comment[];
+}
+
+
+
+export type TypeUserData = {
+  id: string
+  username: string;
+  password: string;
+  email: string;
+  fullName: string;
 }

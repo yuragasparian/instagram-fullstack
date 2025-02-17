@@ -3,16 +3,10 @@ import http from "http";
 import cors from "cors";
 import compression from "compression";
 import router from "./routes/routes";
-
 import cookieParser from "cookie-parser";
 
-export type TypeUserData = {
-    id: number;
-    username: string;
-    password: string;
-    email:string;
-    fullName:string;
-}
+
+
 
 const app = express();
 app.use(cors({ 

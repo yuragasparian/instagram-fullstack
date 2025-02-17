@@ -1,14 +1,13 @@
 import express, { json, NextFunction, Request, Response, text } from "express";
-import { TypeUserData } from "../index";
-import fs, { readFile, writeFile } from "fs/promises";
+import fs from "fs/promises";
 import { validateUser } from "../middlewares/validateUser";
 import { modifyJSONFile } from "../utils/modifyJsonFile";
-import jwt, { JwtPayload, VerifyErrors } from "jsonwebtoken";
+import jwt, { JwtPayload, sign, VerifyErrors } from "jsonwebtoken";
 import authMiddleware from "../middlewares/authMiddleware";
-import { Post, Comment } from './../types/posts';
-import { parse } from "path";
-import { stringify } from "querystring";
-import { AxiosError } from 'axios';
+import { Post, Comment } from '../types/types';
+import { prisma } from './../utils/PrismaClient';
+import { TypeUserData } from '../types/types';
+import { create } from "domain";
 
 export const SECRET_KEY = "test_secret_key";
 
@@ -16,39 +15,73 @@ const router = express.Router();
 
 router.post("/register", validateUser, async (req: Request, res: Response) => {
   try {
-    const fileData = await fs.readFile("src/db/users.json", "utf8");
-    const data: TypeUserData[] = JSON.parse(fileData);
-    const newUser: TypeUserData = { id: Date.now(), ...req.body };
-    const newData = [...data, newUser];
-    await modifyJSONFile("src/db/users.json", newData);
-    const token = jwt.sign({ id: newUser.id, username: newUser.username }, SECRET_KEY, { expiresIn: "10h" });
+    const { fullName, username, email, password }: TypeUserData = req.body;
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email },
+          { username },
+        ],
+      },
+    });
+
+    if (existingUser) {
+      res.status(400).json("User with this email or username already exists");
+      return
+    }
+
+    const newUser = await prisma.user.create({
+      data: {
+        fullName,
+        username,
+        email,
+        password,
+        follows: [],
+        followers: [],
+        profile_picture: "",
+      },
+    });
+
+    const token = jwt.sign(
+      { id: newUser.id, username: newUser.username },
+      SECRET_KEY,
+      { expiresIn: "10h" }
+    );
+
     res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "lax" });
     res.json({ success: true, user: newUser });
 
   } catch (error) {
-    res.status(403).json(error);
+    res.status(403).json("Server error: " + error);
     return;
   }
 });
 
 router.post("/login", async (req: Request, res: Response) => {
-  const { username, password } = req.body;
-  const fileData = await fs.readFile("src/db/users.json", "utf8");
-  const data: TypeUserData[] = JSON.parse(fileData);
-  const user = data.find((u) => u.username === username && u.password === password);
-  if (!user) {
-    res.status(403).json("Invalid username or password");
-    return;
+  const { username, password }: Omit<TypeUserData, "id" | "email" | "fullName"> = req.body
+  const userExists = await prisma.user.findFirst({
+    where: {
+      AND: [
+        { username },
+        { password }
+      ]
+    }
+  })
+  if (!userExists) {
+    res.status(400).json("Invalid username or password");
+    return
   }
-  const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: "10h" });
+
+  const token = jwt.sign({ id: userExists.id, username }, SECRET_KEY, { expiresIn: "10h" });
   res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "lax" });
   res.json({ success: true, message: "Login successful" });
+
 });
 
 router.get("/protected", (req: Request, res: Response) => {
   const token = req.cookies?.token;
   if (!token) {
-    res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json("Unauthorized");
     return
   };
 
@@ -67,59 +100,84 @@ router.get("/protected", (req: Request, res: Response) => {
 
 router.get("/posts", authMiddleware, async (req: Request, res: Response) => {
   try {
-    // const {username}:{username:string} = req.body.user
-    const postsData = await fs.readFile("src/db/posts.json", "utf8");
-    const posts: Post[] = JSON.parse(postsData)
+    const posts = await prisma.post.findMany({
+      include: {
+        author: {
+          select: {
+            username: true,
+            profile_picture: true,
+          }
+        },
+        comments: true
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    });
     res.json(posts)
-  }
-  catch (error) {
-    res.status(403).json(error);
-    return;
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 })
 
 router.post("/likepost", authMiddleware, async (req: Request, res: Response) => {
   try {
-    const postsData = await fs.readFile("src/db/posts.json", "utf8");
-    const posts: Post[] = JSON.parse(postsData)
-    const {liked, postId}:{liked:boolean, postId:string} = req.body
-    const post = posts.find((post) => post.id == postId)
-    if(post && post.likes) {
-      liked?post.likes+=1:post.likes-=1
-      const newPosts = posts.map(_post => _post.id==postId ? post:_post)
-      await modifyJSONFile("src/db/posts.json", newPosts);
+    const { liked, postId }: { liked: boolean, postId: string } = req.body
+
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (post) {
+      const updatedLikes = liked ? post.likes + 1 : post.likes - 1;
+
+      const updatedPost = await prisma.post.update({
+        where: { id: postId },
+        data: {
+          likes: updatedLikes,
+        },
+      });
+
+      res.json(`Post ${postId} ${liked ? "" : "un"}liked!`)
+      return
     }
-    res.json(`Post ${postId} ${liked?"":"un"}liked!`)
-    return
-  } catch (error) {
+  }
+  catch (error) {
     console.log(error);
-    res.status(401)
+    res.status(500).json("An error occurred while updating the post");
     return
   }
 })
 
 router.post("/post-comment", authMiddleware, async (req: Request, res: Response) => {
   try {
-    const postsData = await fs.readFile("src/db/posts.json", "utf8");
-    const posts: Post[] = JSON.parse(postsData);
-
     const { userComment, user_name, postId }: { userComment: string; user_name: string; postId: string } = req.body;
-    const postIndex = posts.findIndex((post) => post.id === postId);
 
-    if (postIndex !== -1) {
-      const newComment: Comment = { user:user_name, text: userComment, timestamp: new Date().toISOString().slice(0, 19) + "Z" };
-      posts[postIndex].comments.push(newComment);
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: { comments: true }
+    });
 
-      await fs.writeFile("src/db/posts.json", JSON.stringify(posts, null, 2), "utf8");
-      res.status(200).json({ message: "Comment added successfully", comment: newComment });
-      return
-    }
+    if (post) {
+      const newComment = await prisma.comment.create({
+        data: {
+          text: userComment,
+          username: user_name,
+          postId: post.id,
+        },
+      });
 
-    res.status(404).json("Post not found" );
+      res.status(200).json(newComment);
+    } 
   } catch (error) {
-    res.status(500).json("An error occurred: "+ error);
+    console.error(error);
+    res.status(500).json({ message: "An error occurred: " + error });
   }
 });
 
+router.get("/user-profile", async (req: Request, res: Response) => {
+
+}
+)
 
 export default router;

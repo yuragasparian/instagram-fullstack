@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import fs from "fs/promises";
-import { TypeUserData } from "../index";
+import { TypeUserData } from "../types/types";
 
 export const validateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { username, password } = req.body;

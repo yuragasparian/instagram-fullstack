@@ -1,4 +1,9 @@
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { MessageCircle } from "lucide-react";
 import { useContext } from "react";
 import { Button } from "@/components/ui/button";
@@ -17,10 +22,13 @@ const PostModal = () => {
           <MessageCircle className="size-6" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="flex overflow-hidden m-auto p-0 h-[90%] w-[80%]" aria-describedby="">
-        <DialogTitle className="hidden"/>
-        <PostImages media={post.media} />
-        <CommentsSection />
+      <DialogContent
+        className="flex overflow-hidden m-auto p-0 h-[90%] w-[80%]"
+        aria-describedby=""
+      >
+        <DialogTitle className="hidden" />
+        <PostImages image={post.image_url} />
+        <CommentsSection/>
       </DialogContent>
     </Dialog>
   );

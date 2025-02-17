@@ -10,8 +10,8 @@ const PostInfo = () => {
     <div className="px-4">
       <p className="font-semibold">{updatedLikes} likes</p>
       <p>
-        <span className="font-bold">{postContext?.post.user.username} </span>
-        {postContext?.post.caption.split(" ").map((word, index) =>
+        <span className="font-bold">{postContext?.post.author_username} </span>
+        {postContext?.post.caption?.split(" ").map((word, index) =>
           word.startsWith("#") ? (
             <span key={index} className="text-blue-500">{word} </span>
           ) : (

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { VerifyErrors, JwtPayload } from "jsonwebtoken";
 import { SECRET_KEY } from './../routes/routes';
-import { TypeUserData } from 'index';
+import { TypeUserData } from '../types/types';
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const token = req.cookies?.token;
     if (!token) {

@@ -1,11 +1,9 @@
-import { Media } from "../../../types/posts";
-
-const PostImages = ({ media }: { media: Media[] }) => {
+const PostImages = ({ image }: { image: string }) => {
   return (
-    <div className="w-full">
+    <div className="">
       <img
-        src={media[0].url}
-        className="aspect-square object-cover size-full"
+        src={image}
+        className="aspect-square object-cover size-full max-w-3xl"
       />
     </div>
   );

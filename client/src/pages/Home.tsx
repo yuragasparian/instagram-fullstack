@@ -5,7 +5,7 @@ import { Post } from "@/types/posts";
 
 const Home = () => {
   const [posts, setPosts] = useState<Post[]>();
-  useEffect(() => {
+  useEffect( () => {
     axios
       .get("http://localhost:3030/posts", { withCredentials: true })
       .then((res: AxiosResponse) => {
@@ -16,8 +16,12 @@ const Home = () => {
         console.log(err);
       });
   }, []);
-  return <>{posts && Posts(posts)}
-  <div>Suggested for you</div></>;
+  return (
+    <div className="flex">
+      {posts && Posts(posts)}
+      <div className="hidden lg:block lg:w-4xl">Suggested for you</div>
+    </div>
+  );
 };
 
 export default Home;

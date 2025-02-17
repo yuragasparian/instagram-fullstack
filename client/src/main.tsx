@@ -7,6 +7,7 @@ import SignUp from './pages/Signup';
 import App from './App';
 import Explore from './pages/Explore';
 import Search from './pages/Search';
+import Profile from './pages/Profile';
 
 createRoot(document.getElementById('root')!).render(
   <Router>
@@ -15,6 +16,7 @@ createRoot(document.getElementById('root')!).render(
           <Route index element={<Home />}/>
           <Route path='/explore' element={<Explore />}/>
           <Route path='/search' element={<Search />}/>
+          <Route path='/:username' element={<Profile />}/>
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<SignUp />} />
