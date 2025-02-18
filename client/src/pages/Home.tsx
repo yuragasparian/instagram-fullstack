@@ -18,7 +18,7 @@ const Home = () => {
   }, []);
   return (
     <div className="flex">
-      {posts && Posts(posts)}
+      {posts && <Posts posts={posts} />}
       <div className="hidden lg:block lg:w-4xl">Suggested for you</div>
     </div>
   );

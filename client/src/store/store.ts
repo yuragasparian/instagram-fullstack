@@ -1,11 +1,26 @@
 import { create } from "zustand";
-
-type UserInfo = {
-  username: string;
-  setUsername: (un: string) => void;
+import { User } from './../types/posts';
+type TUserInfo = {
+  userInfo: User | null;
+  setUserInfo: (ui: User) => void;
+  setLikedPosts: (postId:string, liked:boolean) => void
 };
 
-export const useStore = create<UserInfo>((set) => ({
-  username: "test",
-  setUsername: (un: string) => set(() => ({ username: un })),
+export const useStore = create<TUserInfo>((set) => ({
+  userInfo: null,
+
+  setUserInfo: (ui) => set(() => ({ userInfo: ui })),
+
+  setLikedPosts: (postId, liked) =>
+    set((state) => ({
+      userInfo: state.userInfo
+        ? {
+            ...state.userInfo,
+            liked: liked
+              ? [...state.userInfo.liked, postId]
+              : state.userInfo.liked.filter((id) => id !== postId),
+          }
+        : null,
+    })),
 }));
+

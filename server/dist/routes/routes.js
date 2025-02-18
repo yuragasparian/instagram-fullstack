@@ -14,9 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SECRET_KEY = void 0;
 const express_1 = __importDefault(require("express"));
-const promises_1 = __importDefault(require("fs/promises"));
 const validateUser_1 = require("../middlewares/validateUser");
-const modifyJsonFile_1 = require("../utils/modifyJsonFile");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"));
 const PrismaClient_1 = require("./../utils/PrismaClient");
@@ -25,18 +23,6 @@ const router = express_1.default.Router();
 router.post("/register", validateUser_1.validateUser, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { fullName, username, email, password } = req.body;
-        const existingUser = yield PrismaClient_1.prisma.user.findFirst({
-            where: {
-                OR: [
-                    { email },
-                    { username },
-                ],
-            },
-        });
-        if (existingUser) {
-            res.status(400).json("User with this email or username already exists");
-            return;
-        }
         const newUser = yield PrismaClient_1.prisma.user.create({
             data: {
                 fullName,
@@ -59,14 +45,19 @@ router.post("/register", validateUser_1.validateUser, (req, res) => __awaiter(vo
 }));
 router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, password } = req.body;
-    const fileData = yield promises_1.default.readFile("src/db/users.json", "utf8");
-    const data = JSON.parse(fileData);
-    const user = data.find((u) => u.username === username && u.password === password);
-    if (!user) {
-        res.status(403).json("Invalid username or password");
+    const userExists = yield PrismaClient_1.prisma.user.findFirst({
+        where: {
+            AND: [
+                { username },
+                { password }
+            ]
+        }
+    });
+    if (!userExists) {
+        res.status(400).json("Invalid username or password");
         return;
     }
-    const token = jsonwebtoken_1.default.sign({ id: user.id, username: user.username }, exports.SECRET_KEY, { expiresIn: "10h" });
+    const token = jsonwebtoken_1.default.sign({ id: userExists.id, username }, exports.SECRET_KEY, { expiresIn: "10h" });
     res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "lax" });
     res.json({ success: true, message: "Login successful" });
 }));
@@ -84,58 +75,76 @@ router.get("/protected", (req, res) => {
             return;
         }
         ;
-        res.json(user);
+        res.json(user ? user === null || user === void 0 ? void 0 : user.username : "");
     });
 });
 router.get("/posts", authMiddleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // const {username}:{username:string} = req.body.user
-        const postsData = yield promises_1.default.readFile("src/db/posts.json", "utf8");
-        const posts = JSON.parse(postsData);
+        const posts = yield PrismaClient_1.prisma.post.findMany({
+            include: {
+                author: {
+                    select: {
+                        username: true,
+                        profile_picture: true,
+                    }
+                },
+                comments: true
+            },
+            orderBy: { createdAt: "desc" },
+            take: 10,
+        });
         res.json(posts);
     }
     catch (error) {
-        res.status(403).json(error);
-        return;
+        console.error("Error fetching posts:", error);
+        res.status(500).json({ success: false, message: "Server error" });
     }
 }));
 router.post("/likepost", authMiddleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const postsData = yield promises_1.default.readFile("src/db/posts.json", "utf8");
-        const posts = JSON.parse(postsData);
         const { liked, postId } = req.body;
-        const post = posts.find((post) => post.id == postId);
-        if (post && post.likes) {
-            liked ? post.likes += 1 : post.likes -= 1;
-            const newPosts = posts.map(_post => _post.id == postId ? post : _post);
-            yield (0, modifyJsonFile_1.modifyJSONFile)("src/db/posts.json", newPosts);
+        const post = yield PrismaClient_1.prisma.post.findUnique({
+            where: { id: postId },
+        });
+        if (post) {
+            const updatedLikes = liked ? post.likes + 1 : post.likes - 1;
+            const updatedPost = yield PrismaClient_1.prisma.post.update({
+                where: { id: postId },
+                data: {
+                    likes: updatedLikes,
+                },
+            });
+            res.json(`Post ${postId} ${liked ? "" : "un"}liked!`);
+            return;
         }
-        res.json(`Post ${postId} ${liked ? "" : "un"}liked!`);
-        return;
     }
     catch (error) {
         console.log(error);
-        res.status(401);
+        res.status(500).json("An error occurred while updating the post");
         return;
     }
 }));
 router.post("/post-comment", authMiddleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const postsData = yield promises_1.default.readFile("src/db/posts.json", "utf8");
-        const posts = JSON.parse(postsData);
         const { userComment, user_name, postId } = req.body;
-        const postIndex = posts.findIndex((post) => post.id === postId);
-        if (postIndex !== -1) {
-            const newComment = { user: user_name, text: userComment, timestamp: new Date().toISOString().slice(0, 19) + "Z" };
-            posts[postIndex].comments.push(newComment);
-            yield promises_1.default.writeFile("src/db/posts.json", JSON.stringify(posts, null, 2), "utf8");
-            res.status(200).json({ message: "Comment added successfully", comment: newComment });
-            return;
+        const post = yield PrismaClient_1.prisma.post.findUnique({
+            where: { id: postId },
+            include: { comments: true }
+        });
+        if (post) {
+            const newComment = yield PrismaClient_1.prisma.comment.create({
+                data: {
+                    text: userComment,
+                    username: user_name,
+                    postId: post.id,
+                },
+            });
+            res.status(200).json(newComment);
         }
-        res.status(404).json("Post not found");
     }
     catch (error) {
-        res.status(500).json("An error occurred: " + error);
+        console.error(error);
+        res.status(500).json({ message: "An error occurred: " + error });
     }
 }));
 router.get("/user-profile", (req, res) => __awaiter(void 0, void 0, void 0, function* () {

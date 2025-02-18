@@ -8,14 +8,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateUser = void 0;
-const promises_1 = __importDefault(require("fs/promises"));
+const PrismaClient_1 = require("../utils/PrismaClient");
 const validateUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { username, password } = req.body;
+    const { fullName, username, email, password } = req.body;
     if (!username || !password) {
         res.status(401).json("Username and password are required.");
         return;
@@ -33,11 +30,16 @@ const validateUser = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         return;
     }
     try {
-        const data_str = yield promises_1.default.readFile("src/db/users.json", "utf8");
-        const data = JSON.parse(data_str);
-        const userExists = data.some((user) => user.username === username);
-        if (userExists) {
-            res.status(401).json("Username is already taken.");
+        const existingUser = yield PrismaClient_1.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email },
+                    { username },
+                ],
+            },
+        });
+        if (existingUser) {
+            res.status(400).json("User with this email or username already exists");
             return;
         }
         next();

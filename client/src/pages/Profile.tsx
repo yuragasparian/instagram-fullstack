@@ -1,10 +1,14 @@
+import UserProfileContextProvider from "@/components/userProfile/userProfileContext";
+import UserProfile from "./../components/userProfile/index";
+
 const Profile = () => {
-
   return (
-    <div>
-      <img src="" alt="" />
-    </div>
-  )
-}
+    <UserProfileContextProvider>
+      <div className="px-28">
+        <UserProfile />
+      </div>
+    </UserProfileContextProvider>
+  );
+};
 
-export default Profile
+export default Profile;

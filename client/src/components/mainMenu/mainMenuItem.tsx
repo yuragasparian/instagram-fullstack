@@ -2,9 +2,9 @@ import { TMenuItem } from ".";
 import { NavLink } from "react-router";
 import { Button } from "@/components/ui/button";
 
-const MainMenuItem = (menu: TMenuItem) => {
+const MainMenuItem = ({menu} : {menu:TMenuItem}) => {
   return (
-    <Button key={menu.link} asChild variant={"ghost"} size={"icon"} className="w-full justify-start px-4 gap-3 h-12">
+    <Button asChild variant={"ghost"} size={"icon"} className="w-full justify-start px-4 gap-3 h-12">
         
       <NavLink 
         to={`/${menu.link}`}

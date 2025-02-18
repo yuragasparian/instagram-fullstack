@@ -16,7 +16,7 @@ const CommentsSection = () => {
 
   return (
     <div className="w-fit flex-1 mx-6 p-5">
-      <CommentsHeader author={post.author} />
+      <CommentsHeader />
       <hr className="my-3" />
       <CommentsBody comments={comments} />
       <hr className="my-3" />

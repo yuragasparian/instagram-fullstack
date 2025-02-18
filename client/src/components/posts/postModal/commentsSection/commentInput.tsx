@@ -8,7 +8,7 @@ import { useStore } from "@/store/store";
 const CommentInput = ({ postId, setComments }: { postId: string,  setComments:React.Dispatch<React.SetStateAction<Comment[]>> }) => {
   const [input, setInput] = useState<string | null>(null);
 
-const {username} = useStore()
+const {userInfo} = useStore()
   const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
   };
@@ -20,7 +20,7 @@ const {username} = useStore()
       "http://localhost:3030/post-comment",
       {
         userComment: input,
-        user_name: username,
+        user_name: userInfo?.username,
         postId: postId,
       },
       { withCredentials: true }

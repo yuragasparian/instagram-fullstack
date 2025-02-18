@@ -1,7 +1,15 @@
 export interface User {
-  id?: string;
+  fullName: string;
   username: string;
-  profile_picture: string | undefined;
+  email: string;
+  password: string;
+  id: string;
+  profile_picture: string | null;
+  follows: string[];
+  followers: string[];
+  posts: Post[];
+  liked: string[];
+  createdAt: Date;
 }
 
 export interface Comment {

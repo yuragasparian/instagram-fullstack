@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import fs from "fs/promises";
 import { TypeUserData } from "../types/types";
+import { prisma } from "../utils/PrismaClient";
 
 export const validateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { username, password } = req.body;
+    const { fullName, username, email, password }: TypeUserData = req.body;
 
     if (!username || !password) {
         res.status(401).json("Username and password are required.");
@@ -26,12 +26,18 @@ export const validateUser = async (req: Request, res: Response, next: NextFuncti
     }
 
     try {
-        const data_str = await fs.readFile("src/db/users.json", "utf8");
-        const data: TypeUserData[] = JSON.parse(data_str);
-        const userExists = data.some((user) => user.username === username);
-        if (userExists) {
-            res.status(401).json("Username is already taken.");
-            return;
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email },
+                    { username },
+                ],
+            },
+        });
+
+        if (existingUser) {
+            res.status(400).json("User with this email or username already exists");
+            return
         }
         next();
     } catch (error) {

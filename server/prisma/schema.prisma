@@ -23,6 +23,7 @@ model User {
   posts           Post[]   @relation("UserPosts")
   follows         String[]
   followers       String[]
+  liked           String[]
   createdAt       DateTime @default(now())
 }
 
