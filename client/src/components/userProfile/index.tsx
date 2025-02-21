@@ -11,11 +11,10 @@ const UserProfile = () => {
   const { updateUser } = useUserContext();
   useEffect(() => {
     axios
-      .get(`http://localhost:3030/user-profile?username=${username}`)
+      .get(`http://localhost:3030/user-profile?username=${username}&includePosts=true`)
       .then((user) => {
         updateUser(user.data);
         setLoading(false);
-        
       })
       .catch((err) => console.log(err));
   }, [username]);

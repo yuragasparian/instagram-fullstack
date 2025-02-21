@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios, { AxiosResponse } from "axios";
 import Posts from "./../components/posts/index";
 import { Post } from "@/types/posts";
+import SuggestedPeople from './../components/suggestedPeople/index';
 
 const Home = () => {
   const [posts, setPosts] = useState<Post[]>();
@@ -17,9 +18,10 @@ const Home = () => {
       });
   }, []);
   return (
-    <div className="flex">
-      {posts && <Posts posts={posts} />}
-      <div className="hidden lg:block lg:w-4xl">Suggested for you</div>
+    posts &&
+    <div className="flex gap-10">
+      <Posts posts={posts} />
+      <SuggestedPeople />
     </div>
   );
 };

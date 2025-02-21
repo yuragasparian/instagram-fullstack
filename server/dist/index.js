@@ -9,6 +9,8 @@ const cors_1 = __importDefault(require("cors"));
 const compression_1 = __importDefault(require("compression"));
 const routes_1 = __importDefault(require("./routes/routes"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const socket_io_1 = require("socket.io");
+const messages_1 = __importDefault(require("./socket/messages"));
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)({
     origin: "http://localhost:5173",
@@ -19,6 +21,13 @@ app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 app.use(routes_1.default);
 const server = http_1.default.createServer(app);
+const io = new socket_io_1.Server(server, {
+    cors: {
+        origin: "http://localhost:5173",
+        methods: ["GET", "POST"],
+    },
+});
+(0, messages_1.default)(io);
 server.listen(3030, () => {
     console.log("Server is running on http://localhost:3030");
 });

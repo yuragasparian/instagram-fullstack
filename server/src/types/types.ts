@@ -10,6 +10,19 @@ export interface User {
   followers: string[];
   liked: string[];
   createdAt: Date;
+  messagesSent: Message[]
+  messagesRecieved: Message[]
+  suggestedPeople: User[]
+}
+
+export interface Message {
+  id: string;
+  content: string;
+  senderId: string;
+  receiverId: string;
+  createdAt: Date;
+  sender?: User;
+  receiver?: User;
 }
 
 

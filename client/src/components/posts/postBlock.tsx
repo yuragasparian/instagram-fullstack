@@ -8,7 +8,7 @@ import { Link } from "react-router";
 export const PostContext = createContext<null | {
   liked: boolean;
   setLiked: React.Dispatch<React.SetStateAction<boolean>>;
-  post: Post | null;
+  post: Post;
 }>(null);
 
 const PostBlock = ({ _post }: { _post: Post }) => {

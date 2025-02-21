@@ -1,9 +1,20 @@
 import { Outlet } from "react-router";
 import ValdateToken from "./lib/validateToken";
 import MainMenu from "./components/mainMenu/index";
+import { useStore } from "./store/store";
+import  axios  from 'axios';
+
 
 const App = () => {
-  ValdateToken()
+  ValdateToken();
+
+  const {userInfo, setSuggestedPeople} = useStore()
+
+  if (!userInfo?.suggestedPeople || userInfo?.suggestedPeople.length == 0) {
+    axios.get("http://localhost:3030/last-users").then((lastUsers) => {
+      setSuggestedPeople(lastUsers.data);
+    });
+  }
 
   return (
     <div className="flex">
@@ -12,7 +23,7 @@ const App = () => {
         <MainMenu />
       </div>
       <div className="p-16 w-full flex-1">
-      <Outlet />
+        <Outlet />
       </div>
     </div>
   );

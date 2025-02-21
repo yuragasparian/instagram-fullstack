@@ -14,18 +14,21 @@ datasource db {
 }
 
 model User {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  username        String   @unique
-  email           String   @unique
-  fullName        String
-  password        String
-  profile_picture String?
-  posts           Post[]   @relation("UserPosts")
-  follows         String[]
-  followers       String[]
-  liked           String[]
-  createdAt       DateTime @default(now())
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  username         String    @unique
+  email            String    @unique
+  fullName         String
+  password         String
+  profile_picture  String?
+  posts            Post[]    @relation("UserPosts")
+  follows          String[]
+  followers        String[]
+  liked            String[]
+  createdAt        DateTime  @default(now())
+  messagesSent     Message[] @relation("SentMessages")
+  messagesRecieved Message[] @relation("ReceivedMessages")
 }
+
 
 model Post {
   id              String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -46,4 +49,14 @@ model Comment {
   timestamp DateTime @default(now())
   postId    String   @db.ObjectId
   post      Post     @relation("PostComments", fields: [postId], references: [id])
+}
+
+model Message {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  content    String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  senderId   String   @db.ObjectId
+  reciever   User     @relation("ReceivedMessages", fields: [recieverId], references: [id])
+  recieverId String   @db.ObjectId
+  createdAt  DateTime @default(now())
 }

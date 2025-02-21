@@ -8,6 +8,7 @@ import App from './App';
 import Explore from './pages/Explore';
 import Search from './pages/Search';
 import Profile from './pages/Profile';
+import Messages from './pages/Messages';
 
 createRoot(document.getElementById('root')!).render(
   <Router>
@@ -16,6 +17,7 @@ createRoot(document.getElementById('root')!).render(
           <Route index element={<Home />}/>
           <Route path='/explore' element={<Explore />}/>
           <Route path='/search' element={<Search />}/>
+          <Route path='/messages' element={<Messages />}/>
           <Route path='/:username' element={<Profile />}/>
         </Route>
         <Route path="/login" element={<Login />} />

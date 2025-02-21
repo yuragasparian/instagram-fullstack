@@ -1,4 +1,4 @@
-import express, { json, Request, Response, } from "express";
+import express, { ErrorRequestHandler, json, Request, Response, } from "express";
 import { validateUser } from "../middlewares/validateUser";
 import jwt, { JwtPayload, sign, VerifyErrors } from "jsonwebtoken";
 import authMiddleware from "../middlewares/authMiddleware";
@@ -207,7 +207,7 @@ router.post("/post-comment", authMiddleware, async (req: Request, res: Response)
 });
 
 router.get("/user-profile", async (req: Request, res: Response) => {
-  const { username } = req.query
+  const { username, includePosts } = req.query
   if (typeof username !== 'string') {
     res.status(400).json("Username is required");
     return
@@ -216,7 +216,7 @@ router.get("/user-profile", async (req: Request, res: Response) => {
     const user = await prisma.user.findUnique(
       {
         where: { username: username },
-        include: { posts: true }
+        include: { posts:includePosts?true:false }
       }
     )
     if (user) {
@@ -228,7 +228,19 @@ router.get("/user-profile", async (req: Request, res: Response) => {
   catch (err) {
     res.status(500).json({ err, message: "An error occurred while getting user information" });
   }
-}
-)
+})
+
+router.get("/last-users", async (req: Request, res: Response) => {
+  try {
+    const lastUsers = await prisma.user.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    })
+    res.status(200).json(lastUsers)
+  } catch (err) {
+    res.status(500).json("Server error" + err)
+  }
+})
+
 
 export default router;

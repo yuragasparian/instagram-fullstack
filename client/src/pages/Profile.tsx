@@ -2,6 +2,8 @@ import UserProfileContextProvider from "@/components/userProfile/userProfileCont
 import UserProfile from "./../components/userProfile/index";
 
 const Profile = () => {
+
+  
   return (
     <UserProfileContextProvider>
       <div className="px-28">

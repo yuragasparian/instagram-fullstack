@@ -8,40 +8,43 @@ import { useStore } from "@/store/store";
 
 const LikeButton = () => {
   const postContext = useContext(PostContext);
-  const {userInfo, setLikedPosts} = useStore()
-
-  if (!postContext || !userInfo) return null;
+  const { userInfo, setLikedPosts } = useStore();
 
   const liked = postContext?.liked;
   const setLiked = postContext?.setLiked;
 
   useEffect(() => {
-    const _liked = userInfo.liked.includes(postContext.post.id)
+    if (!postContext || !userInfo || !setLiked) return;
+
+    const _liked = userInfo.liked?.includes(postContext.post.id);
     if (_liked) {
-      setLiked(true)
-      
+      setLiked(true);
     }
-  }, [])
+  }, [postContext, userInfo, setLiked]);
+
+  if (!postContext || !userInfo) return null;
 
   const handleLike = () => {
-  setLiked((prev) => {
-    const newLiked = !prev;
-    setLikedPosts(postContext.post.id, newLiked)
-    axios
-      .post(
-        "http://localhost:3030/likepost",
-        { userId:userInfo.id, liked: newLiked, postId:postContext.post.id },
-        { withCredentials: true }
-      )
-      .then((res: AxiosResponse) => {
-        console.log(res.data);
-      })
-      .catch((err:AxiosError) => console.error(err));
+    if (!setLiked) return;
 
-    return newLiked;
-  });
-};
+    setLiked((prev) => {
+      const newLiked = !prev;
+      setLikedPosts(postContext.post.id, newLiked);
 
+      axios
+        .post(
+          "http://localhost:3030/likepost",
+          { userId: userInfo.id, liked: newLiked, postId: postContext.post.id },
+          { withCredentials: true }
+        )
+        .then((res: AxiosResponse) => {
+          console.log(res.data);
+        })
+        .catch((err: AxiosError) => console.error(err));
+
+      return newLiked;
+    });
+  };
 
   return (
     <Button variant="ghost" size="icon" onClick={handleLike}>
