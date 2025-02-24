@@ -23,7 +23,7 @@ const PostBlock = ({ _post }: { _post: Post }) => {
             to={`/${_post.author.username}`}
           >
             <img
-              src={_post.author?.profile_picture}
+              src={_post.author?.profile_picture || "/user.jpg"}
               className="inline rounded-full"
               width="32px"
               height="32px"

@@ -1,3 +1,4 @@
+
 export interface User {
   fullName: string;
   username: string;
@@ -12,6 +13,7 @@ export interface User {
   messagesSent: Message[]
   messagesRecieved: Message[]
   suggestedPeople: User[]
+  posts: Post[]
 }
 
 export interface Message {
@@ -46,4 +48,11 @@ export interface Post {
   createdAt: Date;
   updatedAt: Date;
   comments: Comment[];
+}
+
+export interface Notif {
+  receiverId?:string,
+  type: string,
+  senderId: string,
+  content: string
 }

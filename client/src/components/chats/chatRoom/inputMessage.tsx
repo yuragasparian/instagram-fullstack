@@ -2,51 +2,38 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import socket from "@/lib/socket";
 import { Message } from "@/types/posts";
-import { ChangeEvent, FC, useState } from "react";
+import { FC, useRef } from "react";
 
 const InputMessage: FC<{
   senderId: string;
   receiverId: string;
-  setMessages: React.Dispatch<React.SetStateAction<Message[] | undefined>>;
-}> = ({ senderId, receiverId, setMessages }) => {
-  const [input, setInput] = useState<string | null>(null);
+}> = ({ senderId, receiverId }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
-    setInput(e.target.value);
-  };
   const sendMessage = () => {
-    if (!input?.trim()) return;
+    if (!inputRef.current?.value.trim()) return;
 
-    const newMessage:Omit<Message, 'id' | 'createdAt'> = {
+    const newMessage: Omit<Message, "id" | "createdAt"> = {
       senderId,
       receiverId,
-      content: input,
+      content: inputRef.current.value,
     };
-    
+
     socket.emit("sendMessage", newMessage);
 
-    setMessages((prev = []) => [
-      ...prev,
-      { 
-        ...newMessage, 
-        id: "temp-id", 
-        createdAt: new Date()
-      }
-    ]);
-    setInput("")
+    inputRef.current.value = "";
   };
   return (
-    <div className="absolute bottom-0 left-0 right-0 px-10 ">
-      <Input value={input || ""} placeholder="Message..." onChange={handleInput}></Input>
-      {input && (
-        <Button
-          variant="link"
-          className="absolute top-0 right-10 inline"
-          onClick={sendMessage}
-        >
-          Send
-        </Button>
-      )}
+    <div className="sticky left-0 right-0 pt-10 pb-2  bottom-0 bg-white">
+      <Input ref={inputRef} placeholder="Message..."></Input>
+
+      <Button
+        variant="link"
+        className="absolute top-10 right-0 inline"
+        onClick={sendMessage}
+      >
+        Send
+      </Button>
     </div>
   );
 };

@@ -1,11 +1,13 @@
-import express, { ErrorRequestHandler, json, Request, Response, } from "express";
+import express, { ErrorRequestHandler, json, query, Request, Response, } from "express";
 import { validateUser } from "../middlewares/validateUser";
 import jwt, { JwtPayload, sign, VerifyErrors } from "jsonwebtoken";
 import authMiddleware from "../middlewares/authMiddleware";
 import { prisma } from './../utils/PrismaClient';
-import { TypeUserData, User } from '../types/types';
+import { Post, TypeUserData, User } from '../types/types';
 import { filter } from "compression";
 import { error } from "console";
+import { connect } from "http2";
+import { create } from "domain";
 
 export const SECRET_KEY = "test_secret_key";
 
@@ -216,7 +218,7 @@ router.get("/user-profile", async (req: Request, res: Response) => {
     const user = await prisma.user.findUnique(
       {
         where: { username: username },
-        include: { posts:includePosts?true:false }
+        include: { posts: includePosts ? true : false }
       }
     )
     if (user) {
@@ -241,6 +243,52 @@ router.get("/last-users", async (req: Request, res: Response) => {
     res.status(500).json("Server error" + err)
   }
 })
+
+router.post("/follow", authMiddleware, async (req: Request, res: Response) => {
+  const to = String(req.query.to);
+  const { userId }: { userId: string } = req.body;
+
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id: to },
+      data: {
+        followers: {
+          push: userId,
+        },
+      },
+    });
+
+    res.json({ success: true, user: updatedUser });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to update follows." });
+  }
+});
+
+router.post("/add-post", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { caption, image_url, author_username } = req.body;
+
+    const newPost = await prisma.post.create({
+      data: {
+        caption,
+        image_url,
+        likes: 0,
+        author: {
+          connect: { username: author_username }
+        }
+      }
+    });
+
+    res.json({ success: true, post: newPost });
+  } catch (error) {
+    console.error("Error creating post:", error);
+    res.status(500).json({ success: false, message: "Failed to create post"});
+  }
+});
+
+
+
 
 
 export default router;

@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from "react";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { Message, User } from "@/types/posts";
 import socket from "@/lib/socket";
 import { useStore } from "@/store/store";
@@ -18,7 +18,7 @@ const ChatRoom: FC<{ userId: string }> = ({ userId }) => {
       console.log(1);
 
       try {
-        const res = await axios.get(
+        const res:AxiosResponse<User> = await axios.get(
           `http://localhost:3030/user-profile?username=${userId}`
         );
         setReciever(res.data);
@@ -29,6 +29,7 @@ const ChatRoom: FC<{ userId: string }> = ({ userId }) => {
             user1: userInfo.id,
             user2: res.data.id,
           });
+          socket.emit("joinRoom", res.data.id)
           console.log("Socket emitted for:", userInfo.id, res.data.id);
         }
       } catch (error) {
@@ -40,10 +41,10 @@ const ChatRoom: FC<{ userId: string }> = ({ userId }) => {
 
   return (
     reciever && (
-      <div className="relative h-full px-10 ">
+      <div className="relative h-[80vh] no-scrollbar px-10 overflow-y-scroll">
         <Receiverinfo reciever={reciever} />
         <ChatsBody setMessages={setMessages} messages={messages} receiver={reciever}/>
-        <InputMessage setMessages={setMessages} senderId={userInfo?.id} receiverId={reciever.id} />
+        <InputMessage senderId={userInfo?.id} receiverId={reciever.id} />
       </div>
     )
   );

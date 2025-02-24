@@ -1,7 +1,8 @@
 import socket from "@/lib/socket";
 import { Message, User } from "@/types/posts";
-import {  FC,  useEffect } from "react";
+import { FC, useEffect } from "react";
 import ChatBubble from "./chatBubble";
+
 
 const ChatsBody: FC<{
   receiver: User;
@@ -11,6 +12,11 @@ const ChatsBody: FC<{
   useEffect(() => {
     socket.on("chatHistory", (history: Message[]) => {
       setMessages(history);
+    });
+
+    socket.on("receiveMessage", (msg: Message) => {
+      console.log("Received message:", msg);
+      setMessages((prev=[]) => [...prev, msg]);
     });
   }, []);
   return (

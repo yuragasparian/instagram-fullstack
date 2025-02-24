@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { User } from '@/types/posts'
 import { FC } from 'react'
+import { Link } from 'react-router';
 
 const Receiverinfo:FC<{reciever:User}> = ({reciever}) => {
   return (
@@ -16,9 +17,11 @@ const Receiverinfo:FC<{reciever:User}> = ({reciever}) => {
               {reciever.username} {" | Instagram"}{" "}
             </p>
           </div>
+          <Link to={"/"+reciever.username}>
           <Button className="font-semibold" variant={"secondary"}>
             View Profile
           </Button>
+          </Link>
         </div>
   )
 }
